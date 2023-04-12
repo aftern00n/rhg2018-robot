@@ -6,6 +6,7 @@ from pwn import *
 import config
 import os
 import time
+import traceback
 
 
 USER = config.USER
@@ -27,32 +28,44 @@ headers = {'User-Agent': 'curl / 7.47.0'}
 #
 def get_question_status():
     try:
-        print "\t [*] download from ", GET_QUESTION_STATUS
+        print("\t [*] download from ", GET_QUESTION_STATUS)
+        r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
+        data = r.json()
+        status = data['status']
+        if status == 0:
+            log.warn("Failed to access the interface.")
+        else:
+            return r.json()["AiChallenge"]
+        """
         while True:
             if int(LOCAL_API) == 1:
                 r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
-                print r.json()
+                print(r.status_code)
+                print(type(r.status_code))
+                print(dir(r))
+                print(r.json())
                 if r.json()['status'] == 0:
-                    log.warn( unicode(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))  +  "waiting to start")
+                    log.warn(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())  +  "waiting to start")
                     time.sleep(4)
                 elif r.json()['status'] == 1:
-                    log.info( unicode(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) +  "start")
+                    log.info(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) +  "start")
                     return r.json()['AiChallenge']
 
             else:
                 r = requests.get(url=GET_QUESTION_STATUS, auth=(USER, PWD), headers=headers, timeout=10)
                 return r.json()['AiChallenge']
-
+        """
     except Exception as e:
-       log.warn(unicode(e))
-       return False
+        log.warn(traceback.format_exc())
+        log.warn(str(e))
+        return False
 
 
 
 def get_machines_info():
     try:
         r = requests.get(url=GET_MACHINES_INFO, auth=(USER, PWD), headers=headers)
-        print r.json()
+        print(r.json())
         return r.json()
     except Exception as e:
         return False
@@ -61,9 +74,9 @@ def get_machines_info():
 def sub_answer(flag):
     try:
         data = {"answer":flag} # Content-Type: application/x-www-form-urlencoded
-        print data
+        print(data)
         r = requests.post(url=SUB_ANSWER, auth=(USER,PWD), data=data, headers=headers)
-        print r.json()
+        print(r.json())
         status =  r.json()['status']
         # 成功：{"status":1,"msg":"success","questionScore":128,"questionRank":1}//questionScore:得分,questionRank:本次提交题目排名
         # 失败：{"status":0,"msg":"提示信息"}
@@ -72,7 +85,7 @@ def sub_answer(flag):
         elif status == 1:
             return True
     except Exception as e:
-        print e
+        print(e)
         return False
 
 
@@ -92,7 +105,7 @@ def make_folder(target_path):
         if not os.path.exists(target_path):
             os.mkdir(target_path)
     except Exception as e:
-        log.warn(unicode(e))
+        log.warn(str(e))
         exit(-1)
 
 

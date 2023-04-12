@@ -61,14 +61,14 @@ class AFL(object):
         self.__debug = debug
 
         if self.__debug:
-            print '__binary_path', self.__binary_path
-            print '__binary_dirname', self.__binary_dirname
-            print '__afl_dirname', self.__afl_dirname
-            print '__afl_fuzz_binary_path', self.__afl_fuzz_binary_path
-            print '__afl_fuzz_process', self.__afl_fuzz_process
-            print '__input_path', self.__input_path
-            print '__output_path', self.__output_path
-            print '__dic_path', self.__dic_path
+            print('__binary_path', self.__binary_path)
+            print('__binary_dirname', self.__binary_dirname)
+            print('__afl_dirname', self.__afl_dirname)
+            print('__afl_fuzz_binary_path', self.__afl_fuzz_binary_path)
+            print('__afl_fuzz_process', self.__afl_fuzz_process)
+            print('__input_path', self.__input_path)
+            print('__output_path', self.__output_path)
+            print('__dic_path', self.__dic_path)
 
     def _generate_afl_dic(self):
         afl_dic_script = """#!/bin/bash
@@ -80,7 +80,7 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
         if not os.path.exists(afl_dic_script_path):
             with open(afl_dic_script_path, 'w') as f:
                 f.write(afl_dic_script)
-        os.chmod(afl_dic_script_path, 0775)
+        os.chmod(afl_dic_script_path, 0o775)
 
         if not os.path.exists(self.__dic_path):
             os.mkdir(self.__dic_path)
@@ -102,10 +102,10 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
         else:
             self.__input_path = '-'
 
-        os.chmod(self.__binary_path, 0775)
+        os.chmod(self.__binary_path, 0o775)
 
         if self.__debug:
-            print "afl command:", self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m none', '-Q', '--', self.__binary_path
+            print("afl command:", self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path, '-m none', '-Q', '--', self.__binary_path)
 
             self.__afl_process = subprocess.Popen(
                 [self.__afl_fuzz_binary_path, '-i', self.__input_path, '-o', self.__output_path, '-x', self.__dic_path,
@@ -137,6 +137,8 @@ i=0; strings "${1}"| while read line; do echo -n "$line" > ${2}/string_${i} ; i=
 
 def check_docker():
     result = subprocess.check_output('cat /proc/1/sched | head -n 1', shell=True)
+    if type(result) == bytes:
+        result = result.decode("utf-8")
     pattern = re.compile('[0-9]+')
     pid = int(pattern.findall(result)[0])
     if pid > 1:
@@ -157,10 +159,10 @@ if __name__ == '__main__':
     #
     # start_time = time.time()
     #
-    # print "afl log...."
-    # print "time ", time.time() - start_time
-    # print "is_alive", afl.is_alive()
-    # print "afl_crashes", afl.crashes()
+    # print("afl log....")
+    # print("time ", time.time() - start_time)
+    # print("is_alive", afl.is_alive())
+    # print("afl_crashes", afl.crashes())
     # time.sleep(20)
     #
     # afl.stop()
@@ -174,12 +176,12 @@ if __name__ == '__main__':
         afl = AFL(file_name, afl=afl_path, debug=True )
         afl.start()
         crashes = afl.crashes()
-        print file_name
-        print "crashes ", crashes
+        print(file_name)
+        print("crashes ", crashes)
 
         crashes = afl.crashes()
-        print file_name
-        print "crashes ", crashes
+        print(file_name)
+        print("crashes ", crashes)
 
         while True:
 
@@ -187,11 +189,11 @@ if __name__ == '__main__':
                 break
 
             time.sleep(20)
-            print  "is_alive", afl.is_alive()
+            print( "is_alive", afl.is_alive())
             tmp = afl.crashes()
             if crashes != tmp:
-                print "time ", time.time() - start_time
-                print "crashes ", crashes
+                print("time ", time.time() - start_time)
+                print("crashes ", crashes)
                 crashes = tmp
 
         afl.stop()

@@ -7,8 +7,9 @@ PWD = os.environ.get("RHG_PWD")
 URL = os.environ.get("URL")
 LOCAL_API = os.environ.get("LOCAL_API")
 # URL = "http://ai.defcon.ichunqiu.com"
-# URL = "http://127.0.0.1:5000"
+URL = "http://127.0.0.1:5000"
 # URL = "http://172.16.4.110"
+LOCAL_API = 1
 
 # logging.basicConfig( level=logging.WARN)
 

@@ -8,6 +8,7 @@ import copy
 
 app = Flask(__name__)
 
+FLAG_FOLDER_PATH = "/tmp"
 
 # 本地题目的下载地址
 @app.route('/')
@@ -20,7 +21,7 @@ def rootcurl():
     return "hello rhg!"
 
 # 本地题目的下载地址
-@app.route('/resources/fileupload/<int:folder_name>/bin')
+@app.route('/resources/fileupload/<string:folder_name>/bin')
 def server_download(folder_name):
     """
     下载local_server文件夹中所有folder_name文件夹中的bin文件
@@ -28,15 +29,15 @@ def server_download(folder_name):
     :return:
     """
     folders = os.listdir("./local_server/")
-    if unicode(folder_name) in folders:
-        file_path = "./local_server/%s/bin" % unicode(folder_name)
+    if folder_name in folders:
+        file_path = "./local_server/%s/bin" % folder_name
         if os.path.exists(file_path):
             with open(file_path,'rb') as f:
                 return f.read()
         else:
             return "file  %s not exists " % file_path
     else:
-        return "folder %s not exists" % unicode(folder_name)
+        return "folder %s not exists" % folder_name
 
 
 
@@ -45,16 +46,17 @@ def make_flags():
     根据local_server在/home/t/下创建flag文件，注意给ｔ文件夹权限
     :return:
     """
-    flag_foder_path = "/home/t/"
-    if os.path.exists(flag_foder_path):
+    #flag_foder_path = "/home/t/"
+    if os.path.exists(FLAG_FOLDER_PATH):
         for folder in os.listdir("./local_server/"):
-            flag_content = "flag{This is flag for challenge_id %s}" % unicode(folder)
-            flag_path = flag_foder_path + "flag%s.txt" % unicode(folder)
+            flag_content = "flag{This is flag for challenge_id %s}" % folder
+            #flag_path = flag_foder_path + "flag%s.txt" % folder
+            flag_path = os.path.join(FLAG_FOLDER_PATH, "flag%s.txt" % folder)
             with open(flag_path,'w+')  as f :
                 f.write(flag_content)
-            print "make_flags in %s" % flag_path
+            print("make_flags in %s" % flag_path)
     else:
-        print flag_foder_path + "not exists"
+        print(FLAG_FOLDER_PATH + "not exists")
         exit(-1)
 
 
@@ -102,31 +104,34 @@ def api_get_question_status():
         }
     challenge_dict_list = []
     for folder in os.listdir("./local_server/"):
-        challenge_dict = copy.copy(challenge_dict_raw) # copy
+        challenge_dict = copy.deepcopy(challenge_dict_raw) # copy
         challenge_dict["challengeID"] = int(folder)
-        challenge_dict["vm_name"] = "vm_name_folder_%s" % unicode(folder)
+        challenge_dict["vm_name"] = "vm_name_folder_%s" % folder
         challenge_dict["question_port"] = 9000+int(folder)
-        challenge_dict["binaryUrl"] = "http://127.0.0.1:5000/resources/fileupload/%s/bin" % unicode(folder)
-        challenge_dict["flag_path"] = "/home/t/flag%s.txt" % unicode(folder)
+        challenge_dict["binaryUrl"] = "http://127.0.0.1:5000/resources/fileupload/%s/bin" % folder
+        challenge_dict["flag_path"] = "/home/t/flag%s.txt" % folder
         challenge_dict_list.append(challenge_dict)
 
     t["AiChallenge"] = challenge_dict_list
+    t["status"] = 1
 
     return json.dumps(t)
 
 
 
 def answer_check(answer):
-    flag_folder = "/home/t/"
-    if os.path.exists(flag_folder):
+    #flag_folder = "/home/t/"
+    if os.path.exists(FLAG_FOLDER_PATH):
         for folder in os.listdir("./local_server/"):
-            flag_path = flag_folder + "/flag%s.txt" % folder
+            #flag_path = FLAG_FOLDER_PATH + "/flag%s.txt" % folder
+            flag_path = os.path.join(FLAG_FOLDER_PATH, "flag%s.txt" % folder)
             with open(flag_path,'r')  as f :
-                if answer == f.read():
+                data = f.read().strip()
+                if answer == data:
                     return True
         return False
     else:
-        print flag_folder + "not exists"
+        print(FLAG_FOLDER_PATH + "not exists")
         exit(-1)
 
 
@@ -149,7 +154,7 @@ def api_sub_answer():
 
 
 def reset_ChallengeID(ChallengeID):
-    print "reset_ChallengeID %s" % ChallengeID
+    print("reset_ChallengeID %s" % ChallengeID)
     return 1
 
 # curl -v -d "ChallengeID=1" -X POST   --user $user:$pwd $URL/api/reset_question
@@ -218,7 +223,7 @@ def api_get_machines_info():
 
 def main():
     # make_flags()
-    print "local_server running..."
+    print("local_server running...")
     app.debug = True
     app.run(host='0.0.0.0',port=5000)
 

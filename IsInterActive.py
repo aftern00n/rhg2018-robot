@@ -10,7 +10,7 @@ def IsInterActive(filename):
 	ret = False
 
 	pattern = re.compile(u'([0-9])(\.[ a-zA-z]+)')
-	fp = os.popen('strings '+filename,'rb')
+	fp = os.popen('strings '+filename,'r')
 	content = fp.read()
 	res = re.findall(pattern,content)
 
@@ -43,8 +43,8 @@ def IsInterActive(filename):
 
 def test():
 	for i in range(2,11):
-		print '----------------------%d-----------------'%i
-		print IsInterActive('bin'+str(i))
+		print('----------------------%d-----------------'%i)
+		print(IsInterActive('bin'+str(i)))
 
 if __name__ == '__main__':
 	test()
